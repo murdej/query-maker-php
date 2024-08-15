@@ -1,0 +1,16 @@
+{
+    "name": "murdej/query-maker-php",
+    "description": "Database query generator.",
+    "autoload": {
+        "psr-4": {
+            "Murdej\\QueryMaker\\": "src/QueryMaker/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Vít Peprníček",
+            "email": "vit.peprnicek@gmail.com"
+        }
+    ],
+    "require": {}
+}
