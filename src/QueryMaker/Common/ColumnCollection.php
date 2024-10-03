@@ -15,6 +15,17 @@ class ColumnCollection
         return $this;
     }
 
+    public function addPrefixed(string $table, string $prefix, array $columns): ColumnCollection
+    {
+        foreach ($columns as $column) {
+            $this->addColumn(
+                "$table.$column", $prefix.$column
+            );
+        }
+
+        return $this;
+    }
+
     public function addSnippet(string $alias, ?string $direction = null): Snippet
     {
         $col = new Column(new Snippet(), $alias, null, $direction);

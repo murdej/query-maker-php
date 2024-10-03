@@ -46,10 +46,32 @@ class ConditionCollection
         return $this;
     }
 
+    public function addNotEq(Identifier|SnippetChunk|string $a, /*Identifier|SnippetChunk|*/mixed $b): ConditionCollection
+    {
+        $this->conds[] = new Condition(
+            Condition::Operator_neq,
+            $this->toOperand($a, true),
+            $this->toOperand($b, false),
+        );
+
+        return $this;
+    }
+
     public function addIn(Identifier|SnippetChunk|string $a, /*Identifier|SnippetChunk|*/array|Snippet $b): ConditionCollection
     {
         $this->conds[] = new Condition(
             Condition::Operator_in,
+            $this->toOperand($a, true),
+            $this->toOperand($b, false),
+        );
+
+        return $this;
+    }
+
+    public function addNotIn(Identifier|SnippetChunk|string $a, /*Identifier|SnippetChunk|*/array|Snippet $b): ConditionCollection
+    {
+        $this->conds[] = new Condition(
+            Condition::Operator_notIn,
             $this->toOperand($a, true),
             $this->toOperand($b, false),
         );
@@ -174,6 +196,50 @@ class ConditionCollection
             $this->toOperand($c, false),
         );
 
+        return $this;
+    }
+
+    /**
+     * Add multiple conditions from array:
+     *  - `'SQL code'` add sql code condition
+     *  - `'column' => [ ... ]` add `column IN [ ... ]`
+     *  - `'!column' => [ ... ]` add `column NOT IN [ ... ]`
+     *  - `'column' => null` add `column IS NULL`
+     *  - `'!column' => null` add `column IS NOT NULL`
+     *  - `'column' => any_value` add `column = any_value`
+     *  - `'!column' => any_value` add `column != any_value`
+     * 
+     * @param array $conditions
+     * @return self
+     */
+    public function addMulti(array $conditions): self
+    {
+        foreach ($conditions as $k => $v) {
+            if (is_int($k)) {
+                $this->addSnippet()->code($v);
+            } else {
+                if (str_contains($k, '?')) {
+                    throw new Exception('? not implemented');
+                    // $this->addSnippet()-> code($v, );
+                } else if (is_array($v)) {
+                    if ($k[0] === '!')
+                        $this->addNotIn(substr($k, 1), $v);
+                    else
+                        $this->addIn($k, $v);
+                    
+                } else if ($v === null) {
+                    if ($k[0] === '!')
+                        $this->addNotNull(substr($k, 1), $v);
+                    else
+                        $this->addIsNull($k, $v);
+                } else {
+                    if ($k[0] === '!')
+                        $this->addNotEq(substr($k, 1), $v);
+                    else
+                        $this->addEq($k, $v);
+                }
+            }
+        }
         return $this;
     }
 

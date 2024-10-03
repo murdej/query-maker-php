@@ -30,7 +30,7 @@ class JoinCollection
 
     public function addInner(Identifier|string|DataSource $from, string|ConditionCollection|Condition $on): Join
     {
-        return $this->add(Join::Type_Left, $from, $on);
+        return $this->add(Join::Type_Inner, $from, $on);
     }
 
     public function __construct(

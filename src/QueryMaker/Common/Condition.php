@@ -24,6 +24,7 @@ class Condition
     const Operator_lte = "<=";
     const Operator_like = "LIKE";
     const Operator_in = "IN";
+    const Operator_notIn = "NOT IN";
     const Operator_range = "range";
     const Operator_inSubQuery = "inSubQuery";
     const Operator_existsSubQuery = "existsSubQuery";

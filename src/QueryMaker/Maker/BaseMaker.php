@@ -124,7 +124,7 @@ abstract class BaseMaker implements IMaker
             } else if (in_array($cond->operator, [Condition::Operator_isNull, Condition::Operator_notNull])) {
                 $cnt->add($cond->a);
                 $cnt->code(" " . $cond->operator . " ");
-            } else if ($cond->operator === Condition::Operator_in) {
+            } else if ($cond->operator === Condition::Operator_in || $cond->operator === Condition::Operator_notIn) {
                 $valuesPN = $cond->getBArray();
                 $useNull = false;
                 $values = [];
@@ -140,7 +140,7 @@ abstract class BaseMaker implements IMaker
                     if ($both) $cnt->code("(");
                     if ($values) {
                         $cnt->add($cond->a);
-                        $cnt->code(" IN (");
+                        $cnt->code(" " . ($cond->operator === Condition::Operator_notIn ? "NOT" : "") . "IN (");
                         $f = true;
                         foreach ($values as $item) {
                             if ($f) $f = false;

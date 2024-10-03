@@ -61,10 +61,10 @@ class DataSource
 
     /**
      * @param string $str
-     * @param (Identifier|SnippetChunk|string)[] $fields
+     * @param (Identifier|SnippetChunk|string)[]|array<int|string, int|string> $fields
      * @return $this
      */
-    public function addFulltextConditionAndOrder(string $str, array|string $fields, ?string $mode = null): ConditionCollection
+    public function addFulltextConditionAndOrder(string $str, array|string $fields, ?string $mode = null): self
     {
         $this->conditions->addFulltext($str, $fields, $mode);
         $this->orders->addFulltext($str, $fields, $mode);
