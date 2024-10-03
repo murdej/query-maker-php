@@ -12,5 +12,6 @@
             "email": "vit.peprnicek@gmail.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "minimum-stability": "stable"
 }
