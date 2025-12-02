@@ -4,8 +4,6 @@ declare(strict_types = 1);
 
 namespace Murdej\QueryMaker\Common;
 
-use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
-
 class Snippet {
     /** @var SnippetChunk[] */
     public array $content = [];
@@ -55,9 +53,10 @@ class Snippet {
         $this->content = array_merge($this->content, $snippet->content);
     }
 
-    public function add(Snippet|SnippetChunk|null $a)
+    public function add(Snippet|SnippetChunk|Fulltext|null $a)
     {
         if ($a instanceof Snippet) $this->paste($a);
+        else if ($a instanceof Fulltext) $this->content[] = new SnippetChunk('', $a);
         else $this->content[] = $a;
     }
 

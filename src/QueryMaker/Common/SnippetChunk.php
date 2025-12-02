@@ -6,7 +6,7 @@ class SnippetChunk
 {
     public function __construct(
         public string $type,
-        public ?string $content,
+        public string|Fulltext|null $content,
         public mixed $value = null,
     ) { }
 

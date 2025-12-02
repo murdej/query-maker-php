@@ -9,12 +9,14 @@ use Murdej\QueryMaker\Common\ConditionCollection;
 use Murdej\QueryMaker\Common\Cte;
 use Murdej\QueryMaker\Common\CteCollection;
 use Murdej\QueryMaker\Common\DataSource;
+use Murdej\QueryMaker\Common\Fulltext;
 use Murdej\QueryMaker\Common\Identifier;
 use Murdej\QueryMaker\Common\Join;
 use Murdej\QueryMaker\Common\JoinCollection;
 use Murdej\QueryMaker\Common\Query;
 use Murdej\QueryMaker\Common\Snippet;
 use Murdej\QueryMaker\Common\SnippetChunk;
+use Murdej\QueryMaker\Common\Union;
 
 abstract class BaseMaker implements IMaker
 {
@@ -30,7 +32,12 @@ abstract class BaseMaker implements IMaker
         //CTE
         $this->makeCtes($query->ctes);
         // SQL
+        if ($query->unions->any()) $this->content->code('(');
         $this->makeDataSource($query);
+        if ($query->unions->any()) $this->content->code(')');
+        // UNION
+        $this->makeUnions($query->unions);
+        
         return $this->makeSnippetQuery($this->content);
     }
 
@@ -78,7 +85,7 @@ abstract class BaseMaker implements IMaker
             }
 
             // limit
-            if ($dataSource instanceof Query && $dataSource->limitCount) {
+            if ($dataSource instanceof DataSource && $dataSource->limitCount) {
                 $cnt->endl();
                 $cnt->code("LIMIT " . $dataSource->limitFrom . ", " . $dataSource->limitCount);
             }
@@ -115,9 +122,14 @@ abstract class BaseMaker implements IMaker
         }
         else if ($cond instanceof Condition) {
 
-            if ($cond->snippet) $cnt->paste($cond->snippet);
-            else if (in_array($cond->operator, [Condition::Operator_eq, Condition::Operator_neq, Condition::Operator_gt,
-                Condition::Operator_lt, Condition::Operator_gte, Condition::Operator_lte, Condition::Operator_like])) {
+            if ($cond->snippet) {
+                $cnt->paste($cond->snippet);
+            } else if ($cond->a instanceof Fulltext) {
+                $this->makeFulltext($cnt, $cond->a);
+            } else if (in_array(
+                $cond->operator,
+                [Condition::Operator_eq, Condition::Operator_neq, Condition::Operator_gt, Condition::Operator_lt, Condition::Operator_gte, Condition::Operator_lte, Condition::Operator_like])
+            ) {
                 $cnt->add($cond->a);
                 $cnt->code(" " . $cond->operator . " ");
                 $cnt->add($cond->b);
@@ -179,19 +191,25 @@ abstract class BaseMaker implements IMaker
     {
         $res = new QueryAndValues();
         foreach ($snippet->content as $chunk) {
-            switch ($chunk->type)
-            {
-                case SnippetChunk::Type_code:
-                    $res->query .= $chunk->content;
-                    break;
-                case SnippetChunk::Type_value:
-                    //todo: dle db
-                    $res->query .= '?';
-                    $res->values[] = $chunk->value;
-                    break;
-                case SnippetChunk::Type_identifier:
-                    $res->query .= $this->escapeIdentifier($chunk->content);
-                    break;
+            if ($chunk->content instanceof Fulltext) {
+                $chunks = new Snippet();
+                $this->makeFulltext($chunks, $chunk->content);
+                $res->add($this->makeSnippetQuery($chunks));
+            } else {
+                switch ($chunk->type)
+                {
+                    case SnippetChunk::Type_code:
+                        $res->query .= $chunk->content;
+                        break;
+                    case SnippetChunk::Type_value:
+                        //todo: dle db
+                        $res->query .= '?';
+                        $res->values[] = $chunk->value;
+                        break;
+                    case SnippetChunk::Type_identifier:
+                        $res->query .= $this->escapeIdentifier($chunk->content);
+                        break;
+                }
             }
         }
 
@@ -211,13 +229,15 @@ abstract class BaseMaker implements IMaker
         }
     }
 
-    public function makeColumn(Column $column)
+    public function makeColumn(Column $column, ?Snippet $cnt = null)
     {
-        $cnt = $this->content;
+        if (!$cnt) $cnt = $this->content;
         if ($column->column instanceof Identifier) {
             $cnt->paste($column->column->fieldSnippet());
         } else if ($column->column instanceof Snippet) {
             $cnt->paste($column->column);
+        } else if ($column->column instanceof Fulltext) {
+            $this->makeFulltext($cnt, $column->column);
         } else if ($column->dataSource) {
             $cnt->code(
                 ($column->subQueryType === Column::SubQueryType_Exists ? "EXISTS" : "")
@@ -280,5 +300,36 @@ abstract class BaseMaker implements IMaker
             $cnt->endl(-1);
         }
         $cnt->endl();
+    }
+
+    private function makeUnions(\Murdej\QueryMaker\Common\UnionCollection $unions)
+    {
+        $cnt = $this->content;
+        if ($unions->any()) {
+            foreach ($unions->unions as $union) {
+                $this->makeUnion($union);
+            }
+        }
+    }
+
+    public function makeUnion(Union $union)
+    {
+        $cnt = $this->content;
+        $cnt->endl()->code("UNION (")->endl(1);
+        $this->makeDataSource($union->dataSource);
+        $cnt->endl(-1)->code(")");
+    }
+
+    protected function makeFulltext(Snippet $cnt, Fulltext $fulltext)
+    {
+        $cnt->code('MATCH(');
+        foreach (array_values($fulltext->columns) as $i => $column) {
+            if ($i) $cnt->code(", ");
+            $col = new Column($column);
+            $this->makeColumn($col, $cnt);
+        }
+        $cnt->code(') AGAINST(')
+            ->value($fulltext->searchTerm)
+            ->code(' ' . $fulltext->mode . ')');
     }
 }

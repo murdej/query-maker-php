@@ -8,7 +8,7 @@ class Condition
 
     public function __construct(
         public ?string $operator = null,
-        public SnippetChunk|Snippet|null $a = null,
+        public SnippetChunk|Snippet|Fulltext|null $a = null,
         public SnippetChunk|Snippet|null $b = null,
         public SnippetChunk|Snippet|null $c = null,
         public ?Snippet $snippet = null,

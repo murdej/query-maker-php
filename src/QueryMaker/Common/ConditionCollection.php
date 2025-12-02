@@ -243,9 +243,9 @@ class ConditionCollection
         return $this;
     }
 
-    private function toOperand(mixed $b, bool $stringIsField): SnippetChunk|Snippet|null
+    private function toOperand(mixed $b, bool $stringIsField): SnippetChunk|Snippet|Fulltext|null
     {
-        if ($b instanceof SnippetChunk || $b instanceof Snippet) {
+        if ($b instanceof SnippetChunk || $b instanceof Snippet || $b instanceof Fulltext) {
             return $b;
         } else if ($b instanceof Identifier) {
             return $b->fieldSnippet();

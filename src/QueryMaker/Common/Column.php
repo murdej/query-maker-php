@@ -8,7 +8,7 @@ class Column
     public ?Snippet $column;
 
     public function __construct(
-        string|Snippet|Identifier|null $column,
+        string|Snippet|Identifier|Fulltext|null $column,
         public ?string $alias = null,
         public ?DataSource $dataSource = null,
         public ?string $direction = null,

@@ -8,9 +8,7 @@ class Query extends DataSource
 {
     public CteCollection $ctes;
 
-    public ?int $limitFrom = 0;
-
-    public ?int $limitCount = null;
+    public UnionCollection $unions;
 
     public bool $prepareObtainCount = false;
 
@@ -18,5 +16,6 @@ class Query extends DataSource
     {
         parent::__construct($this);
         $this->ctes = new CteCollection($this);
+        $this->unions = new UnionCollection($this);
     }
 }

@@ -65,7 +65,7 @@ class ColumnCollection
     public function addColumns(string ...$columns)
     {
         foreach ($columns as $column) {
-            if (preg_match('/(([a-zA-Z]+)\\.)?([a-zA-Z]+)( +([Aa][Ss] +)?([a-zA-Z]+))?/', $column, $m))
+            if (preg_match('/(([a-zA-Z]+)\\.)?([a-zA-Z*]+)( +([Aa][Ss] +)?([a-zA-Z]+))?/', $column, $m))
             {
                 $this->columns[] = new Column(
                     (new Identifier($m[3], $m[2] ?: null))->fieldSnippet(),

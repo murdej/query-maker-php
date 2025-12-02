@@ -22,6 +22,10 @@ class DataSource
 
 	public DataSource|Identifier|null $from = null;
 
+    public ?int $limitFrom = 0;
+
+    public ?int $limitCount = null;
+
     public ConditionCollection $conditions;
 
     public ConditionCollection $havings;
