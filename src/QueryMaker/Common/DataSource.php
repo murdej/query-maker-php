@@ -50,7 +50,7 @@ class DataSource
 		return $this;
 	}
 
-	public function fromSubSelect(string $alias = null): DataSource {
+	public function fromSubSelect(?string $alias = null): DataSource {
 		$this->from = new DataSource($this->query);
 		$this->alias = $alias;
 

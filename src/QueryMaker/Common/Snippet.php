@@ -30,7 +30,7 @@ class Snippet {
         return $this;
     }
 
-    public function value(mixed $value, string $name = null): Snippet {
+    public function value(mixed $value, ?string $name = null): Snippet {
         $this->beforeAddContent();
         $this->content[] = new SnippetChunk(SnippetChunk::Type_value, $name, $value);
         return $this;
